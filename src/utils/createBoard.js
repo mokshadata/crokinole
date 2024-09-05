@@ -1,6 +1,25 @@
 import * as S from "$data/specs.js";
 import * as T from "three";
 
+function hollowCylinderByExtrusion(outerR, innerR, h, segments) {
+		const extrudeSettings = {
+    depth : h,
+    steps : 1,
+    bevelEnabled: false,
+    curveSegments: segments,
+	};
+
+	const outerCircle = new T.Shape();
+	outerCircle.absarc(0, 0, outerR, 0, Math.PI * 2, 0, false);
+
+	const innerCircle = new T.Shape();
+	innerCircle.absarc(0, 0, innerR, 0, Math.PI * 2, 0, true);
+
+	outerCircle.holes.push(innerCircle);
+
+	return new T.ExtrudeGeometry(outerCircle, extrudeSettings).rotateX(Math.PI / 2).translate(0, h, 0);
+}
+
 function cylinderLathe(outerR, innerR, h, segments) {
 	const halfH = h * 0.5;
 

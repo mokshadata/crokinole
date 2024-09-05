@@ -226,20 +226,30 @@
 		const gravity = { x: 0.0, y: -9.81, z: 0.0 };
 		world = new R.World(gravity);
 
-		const baseC = new R.ColliderDesc(
-			new R.Cylinder(S.baseHeight / 2, S.baseRadius)
-		).setTranslation(0, S.baseY, 0);
-
-		world.createCollider(baseC);
-
 		const structure = board.children.find((d) => d.name === "structure");
-		const surface = structure.children.find((d) => d.name === "surface");
-		const surfaceC = createHollowCylinderCollider(surface.geometry)
-			.setTranslation(0, S.surfaceY, 0)
-			.setFriction(0.15)
+		const hollowCylinders = structure.children.filter((d) => d.name === "surface");
+
+		hollowCylinders.forEach(function (shape) {
+			const surfaceC = createHollowCylinderCollider(shape)
+				.setTranslation(0, S.surfaceY, 0)
+				.setFriction(0.15)
+				.setRestitution(0.03);
+	
+			world.createCollider(surfaceC);
+		})
+		
+		const base = structure.children.filter((d) => d.name === "base");
+		const pegs = structure.children.filter((d) => d.name === "pegs").map((d) => d.children.filter((d) => d.name === 'peg')).reduce((result, curr) => ([...result, ...curr]), []);
+		const cylinders = [...base, ...pegs]
+		
+		cylinders.forEach(function (shape) {
+			const baseC = new R.ColliderDesc(
+				new R.Cylinder(shape.geometry.parameters.height, shape.geometry.parameters.radiusTop)
+			).setTranslation(shape.position.x, shape.position.y, shape.position.z)
 			.setRestitution(0.03);
 
-		world.createCollider(surfaceC);
+			world.createCollider(baseC);
+		})
 
 		tick();
 	});
