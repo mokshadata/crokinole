@@ -227,28 +227,37 @@
 		world = new R.World(gravity);
 
 		const structure = board.children.find((d) => d.name === "structure");
-		const hollowCylinders = structure.children.filter((d) => d.name === "surface");
+		const surface = structure.children.filter((d) => d.name === "surface");
+		const rim = structure.children.filter((d) => d.name === "rim");
+		const hollowCylinders = [...surface, ...rim]
 
 		hollowCylinders.forEach(function (shape) {
-			const surfaceC = createHollowCylinderCollider(shape)
-				.setTranslation(0, S.surfaceY, 0)
+			const target = new T.Vector3();
+			shape.getWorldPosition(target)
+
+			const hollowShapeCollider = createHollowCylinderCollider(shape)
+				.setTranslation(target.x, target.y, target.z)
 				.setFriction(0.15)
 				.setRestitution(0.03);
 	
-			world.createCollider(surfaceC);
+			world.createCollider(hollowShapeCollider);
 		})
 		
 		const base = structure.children.filter((d) => d.name === "base");
 		const pegs = structure.children.filter((d) => d.name === "pegs").map((d) => d.children.filter((d) => d.name === 'peg')).reduce((result, curr) => ([...result, ...curr]), []);
 		const cylinders = [...base, ...pegs]
-		
+
 		cylinders.forEach(function (shape) {
-			const baseC = new R.ColliderDesc(
+			const target = new T.Vector3();
+			shape.getWorldPosition(target)
+
+			const cylinderShapeCollider = new R.ColliderDesc(
 				new R.Cylinder(shape.geometry.parameters.height, shape.geometry.parameters.radiusTop)
-			).setTranslation(shape.position.x, shape.position.y, shape.position.z)
+			)
+			.setTranslation(target.x, target.y, target.z)
 			.setRestitution(0.03);
 
-			world.createCollider(baseC);
+			world.createCollider(cylinderShapeCollider);
 		})
 
 		tick();
